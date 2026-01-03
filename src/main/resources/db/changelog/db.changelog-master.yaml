@@ -1,0 +1,4 @@
+databaseChangeLog:
+  - logicalFilePath: changelog.xml
+  - includeAll:
+      path: classpath:db/changelog/migrations
