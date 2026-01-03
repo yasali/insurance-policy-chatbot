@@ -26,3 +26,17 @@ sealed class PolicyException(message: String, cause: Throwable? = null) : Domain
 
 class PolicyNotFoundException(policyId: UUID) :
     PolicyException("Policy not found: $policyId")
+
+/**
+ * Thrown when LLM operations fail.
+ */
+sealed class LLMException(message: String, cause: Throwable? = null) : DomainException(message, cause)
+
+class LLMServiceUnavailableException(message: String, cause: Throwable? = null) :
+    LLMException(message, cause)
+
+class LLMResponseParsingException(message: String, cause: Throwable? = null) :
+    LLMException(message, cause)
+
+class LLMTimeoutException(message: String) :
+    LLMException(message)
