@@ -28,6 +28,14 @@ class PolicyNotFoundException(policyId: UUID) :
     PolicyException("Policy not found: $policyId")
 
 /**
+ * Thrown when conversation operations fail.
+ */
+sealed class ConversationException(message: String, cause: Throwable? = null) : DomainException(message, cause)
+
+class ConversationNotFoundException(conversationId: UUID) :
+    ConversationException("Conversation not found: $conversationId")
+
+/**
  * Thrown when LLM operations fail.
  */
 sealed class LLMException(message: String, cause: Throwable? = null) : DomainException(message, cause)
