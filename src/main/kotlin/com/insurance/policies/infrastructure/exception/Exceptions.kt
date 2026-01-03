@@ -36,6 +36,11 @@ class ConversationNotFoundException(conversationId: UUID) :
     ConversationException("Conversation not found: $conversationId")
 
 /**
+ * Thrown when claim operations fail.
+ */
+sealed class ClaimException(message: String, cause: Throwable? = null) : DomainException(message, cause)
+
+/**
  * Thrown when LLM operations fail.
  */
 sealed class LLMException(message: String, cause: Throwable? = null) : DomainException(message, cause)
