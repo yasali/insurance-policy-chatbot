@@ -114,9 +114,15 @@ class PolicyAssistantService(
             queryLower.contains("current") || queryLower.contains("now") -> {
                 policies.filter { it.isCurrent() }
             }
-            // Address query
+            // Move or previous address queries - need timeline
+            queryLower.contains("move") || queryLower.contains("moved") ||
+            queryLower.contains("previous") || queryLower.contains("old address") ||
+            queryLower.contains("changed address") || queryLower.contains("change") -> {
+                policies.sortedBy { it.startDate } // Return all policies sorted by date
+            }
+            // Address query - return recent policies
             queryLower.contains("address") || queryLower.contains("location") -> {
-                policies.take(3) // Return recent policies
+                policies.sortedByDescending { it.startDate }.take(3)
             }
             // Coverage/start date query
             queryLower.contains("start") || queryLower.contains("when") -> {
@@ -126,7 +132,7 @@ class PolicyAssistantService(
             else -> {
                 policies.filter { it.isCurrent() }.ifEmpty { policies.take(1) }
             }
-        }.take(3) // Limit to 3 policies to avoid context overflow
+        }.take(5) // Increased to 5 to show better history
     }
 
     /**
@@ -137,7 +143,14 @@ class PolicyAssistantService(
             return "No policy information available."
         }
 
-        return policies.joinToString("\n\n") { policy ->
+        val sortedPolicies = policies.sortedBy { it.startDate }
+        val header = if (sortedPolicies.size > 1) {
+            "Customer's Policy History (chronological order):\n"
+        } else {
+            ""
+        }
+
+        return header + sortedPolicies.joinToString("\n\n") { policy ->
             """
             Policy ID: ${policy.id}
             Address: ${policy.address}
@@ -167,7 +180,7 @@ class PolicyAssistantService(
         2. If the answer is not in the policy information, say: "I don't have that information in your policy details. Please contact our support team."
         3. NEVER make up policy terms, coverage amounts, or dates
         4. Be concise and friendly
-        5. Use the policy information literally - don't infer or assume
+        5. Use the exact dates and information from the policies
 
         POLICY INFORMATION:
         $policyContext
@@ -177,6 +190,11 @@ class PolicyAssistantService(
         - For coverage questions, mention the start date and status
         - For date questions, use the exact dates from the policy
         - If multiple policies exist, clarify which one you're referring to
+        - For questions about moves or address changes:
+          * Compare the addresses across policies
+          * Use the end date of the old policy as the move date
+          * Explain which address was old and which is new based on the dates
+        - You MAY make reasonable deductions from the policy timeline (e.g., if address changes between policies, the customer moved)
         """.trimIndent()
     }
 }
